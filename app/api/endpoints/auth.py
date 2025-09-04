@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy.orm import Session
+from fastapi.security import OAuth2PasswordRequestForm
 
 from app.db.session import get_db
 from app.schemas.auth import (
@@ -34,7 +35,7 @@ def confirm(data: ConfirmSignupRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/login", response_model=AuthResponse)
-def login(data: LoginRequest, response: Response, db: Session = Depends(get_db)):
+def login(response: Response, data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     service = AuthService(aws_helper.get_cognito(), db)
     resp = service.login(data)
     if not resp.success:

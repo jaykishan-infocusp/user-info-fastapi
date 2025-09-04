@@ -1,4 +1,15 @@
+import os
+from pathlib import Path
+
 from pydantic_settings import BaseSettings
+from dotenv import load_dotenv
+
+# Detect if we are inside pytest
+IS_TEST = "PYTEST_CURRENT_TEST" in os.environ
+
+# Decide which env file to load
+env_file = ".env.test" if IS_TEST else ".env"
+load_dotenv(Path(__file__).resolve().parent.parent.parent / env_file, override=True)
 
 
 class Settings(BaseSettings):
@@ -33,7 +44,7 @@ class Settings(BaseSettings):
         )
 
     class Config:
-        env_file = ".env"
+        env_file = env_file
         case_sensitive = False
         extra = "ignore"
 

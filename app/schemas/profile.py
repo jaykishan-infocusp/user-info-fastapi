@@ -7,6 +7,7 @@ from pydantic import BaseModel, EmailStr
 
 class ProfileBase(BaseModel):
     email: Optional[EmailStr] = None
+    username: str
     name: Optional[str] = None
     height: Optional[int] = None
     gender: Optional[str] = None

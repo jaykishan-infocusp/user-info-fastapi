@@ -6,9 +6,12 @@ from app.core.config import settings
 from app.core.security import verify_jwt
 from app.db.session import get_db
 from app.models.profile import Profile
+from fastapi.security import OAuth2PasswordBearer
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 
-def get_claims(request: Request):
+def get_claims(request: Request, token: str = Depends(oauth2_scheme)):
     # 1. Try to get token from cookie
     token = request.cookies.get("access_token")
 
@@ -36,11 +39,11 @@ def get_claims(request: Request):
     return claims
 
 
-def get_current_user(request: Request, db: Session = Depends(get_db)) -> Profile:
+def get_current_user(request: Request, claims: dict = Depends(get_claims), db: Session = Depends(get_db)) -> Profile:
     """
     Dependency that extracts and verifies the current user from JWT in cookies.
     """
-    claims = get_claims(request)
+    # claims = get_claims(request)
     user_sub = claims.get("sub")
     if not user_sub:
         raise HTTPException(
@@ -58,13 +61,11 @@ def get_current_user(request: Request, db: Session = Depends(get_db)) -> Profile
     return user
 
 
-def get_admin(request: Request):
+def get_admin(request: Request, claims: dict = Depends(get_claims)):
     """
     FastAPI dependency to enforce admin access.
     Validates the JWT, checks for "admin" group.
     """
-    claims = get_claims(request)
-
     groups = claims.get("cognito:groups", [])
     if "admin" not in groups:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
